@@ -9,7 +9,7 @@ from helpers import get_current_user, get_run_id
 # COMMAND ----------
 
 current_user = get_current_user()
-print(current_user)
+print(f'Current user: {current_user}')
 
 # COMMAND ----------
 
@@ -24,12 +24,16 @@ print(logged_model)
 
 # COMMAND ----------
 
-loaded_model = mlflow.pyfunc.spark_udf(spark, model_uri=logged_model, result_type='double')
+loaded_model = mlflow.pyfunc.spark_udf(spark, model_uri=logged_model, result_type='double', env_manager='local')
 
 spark_df = spark.table(f"default.{current_user}_train")
 predictions = spark_df.withColumn('predictions', loaded_model())
 
 display(predictions)
+
+# COMMAND ----------
+
+# MAGIC %md Write predictions to a Delta table
 
 # COMMAND ----------
 

@@ -1,20 +1,28 @@
 # Databricks notebook source
-# MAGIC %md ## Compare models and promote best model to Model Registry
+# MAGIC %md ## Compare models and promote the best model to Model Registry
 
 # COMMAND ----------
 
 import mlflow
 from mlflow.tracking import MlflowClient
-from helpers import get_current_user
+from helpers import get_current_user, create_registry_entry
 
 # COMMAND ----------
 
 current_user = get_current_user()
-print(current_user)
+print(f'Current user: {current_user}')
 
 # COMMAND ----------
 
-# MAGIC %md Retrieve the best model run
+# MAGIC %md Create a Model Registry for the project
+
+# COMMAND ----------
+
+create_registry_entry(f"{current_user}_model")
+
+# COMMAND ----------
+
+# MAGIC %md #### Retrieve the best model run recorded in the MLflow Experiment
 
 # COMMAND ----------
 
@@ -26,10 +34,18 @@ print(experiment_id)
 
 # COMMAND ----------
 
+# MAGIC %md View all runs
+
+# COMMAND ----------
+
 runs = client.search_runs(experiment_ids=[experiment_id],
-                          order_by=['metrics.eval_f1_score DESC'], 
+                          order_by=['metrics.f1_score DESC'], 
                           max_results=1)[0]
 runs
+
+# COMMAND ----------
+
+# MAGIC %md Get the run id and artifact uri associated with the best model
 
 # COMMAND ----------
 
@@ -41,7 +57,7 @@ print(best_model_artifact_uri)
 
 # COMMAND ----------
 
-# MAGIC %md Register best model
+# MAGIC %md Register the best model
 
 # COMMAND ----------
 

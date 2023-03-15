@@ -15,10 +15,6 @@ from helpers import get_current_user
 
 # COMMAND ----------
 
-# MAGIC %run ./tmp
-
-# COMMAND ----------
-
 current_user = get_current_user()
 model_registry_name = f"{current_user}_model"
 print(model_registry_name)
@@ -29,9 +25,8 @@ print(model_registry_name)
 
 # COMMAND ----------
 
-access_token = access_token
-# https://e2-demo-field-eng.cloud.databricks.com/?o=1444828305810485#job/104358498399533
-job_id = "104358498399533"
+access_token = <PAT token>
+job_id = <Job id>
 
 job_spec = JobSpec(
   job_id=job_id,

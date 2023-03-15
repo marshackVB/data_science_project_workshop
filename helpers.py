@@ -1,11 +1,14 @@
 import mlflow
 from mlflow.tracking import MlflowClient
+import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import make_pipeline
 from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
 from pyspark.dbutils import DBUtils
+
 
 spark = SparkSession.builder.getOrCreate()
 dbutils = DBUtils(spark)
@@ -14,6 +17,35 @@ dbutils = DBUtils(spark)
 def get_current_user():
   """Get the current notebook user"""
   return dbutils.notebook.entry_point.getDbutils().notebook().getContext().userName().get().split('@')[0].replace('.', '_')
+
+def get_spark_dataframe():
+  """Load sample .csv file from Repo into a Spark DataFrame"""
+  csv_file_path = 'titanic_train.csv'
+  columns_and_types = [('PassengerId', str, StringType()),
+                     ('Survived', int, IntegerType()), 
+                     ('Pclass', str, StringType()),
+                     ('Name', str, StringType()), 
+                     ('Sex', str, StringType()), 
+                     ('Age', float, DoubleType()), 
+                     ('SibSp', str, StringType()),
+                     ('Parch', str, StringType()), 
+                     ('Ticket', str, StringType()), 
+                     ('Fare', float, DoubleType()),
+                     ('Cabin', str, StringType()),
+                     ('Embarked', str, StringType())]
+
+  pandas_schema = {}
+  spark_schema = StructType()
+
+  for col_name, pandas_type, spark_type in columns_and_types:
+    pandas_schema[col_name] = pandas_type
+    spark_schema.add(StructField(col_name, spark_type, True))
+
+  df_pandas = pd.read_csv(csv_file_path, header=0, dtype=pandas_schema)
+  df_spark = spark.createDataFrame(df_pandas, schema=spark_schema)
+
+  return df_spark
+
 
 
 def get_or_create_experiment(experiment_location):

@@ -5,6 +5,7 @@
 # COMMAND ----------
 
 import mlflow
+import pandas as pd
 import xgboost as xgb
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
@@ -13,7 +14,7 @@ from helpers import get_current_user, get_or_create_experiment, create_registry_
 # COMMAND ----------
 
 current_user = get_current_user()
-print(current_user)
+print(f'Current user: {current_user}')
 
 # COMMAND ----------
 
@@ -28,10 +29,6 @@ get_or_create_experiment(experiment_location)
 
 # COMMAND ----------
 
-dbutils.fs.ls(f'/Shared/{current_user}/experiments')
-
-# COMMAND ----------
-
 # MAGIC %md Ingest data
 
 # COMMAND ----------
@@ -41,43 +38,51 @@ training_df.head()
 
 # COMMAND ----------
 
-# MAGIC %md Train model and log to mlflow
+# MAGIC %md Train model and log to mlflow. See the MLflow [documentation](https://mlflow.org/docs/latest/index.html).  
+# MAGIC   - [Auto logging](https://mlflow.org/docs/latest/tracking.html#automatic-logging)  
+# MAGIC   - [Model evaluation](https://mlflow.org/docs/latest/models.html#model-evaluation)
 
 # COMMAND ----------
 
+# Start an MLflow Experiment Run, which will be recorded in the
+# MLflow experiment for this project
 with mlflow.start_run(run_name='xgboost') as run:
   
-  mlflow.autolog(log_models=False)
-  
+  # Capture run id for later use
   run_id = run.info.run_id
   
+  # Enable MLflow auto logging
+  mlflow.autolog(log_input_examples=True,
+                 log_model_signatures=True,
+                 log_models=True,
+                 silent=True)
+  
+  # Split features into train and validation
   label = 'Survived'
   features = [col for col in training_df.columns if col not in [label, 'PassengerId']]
 
-  X_train, X_test, y_train, y_test = train_test_split(training_df[features], training_df[label], test_size=0.25, random_state=123, shuffle=True)
+  X_train, X_val, y_train, y_val = train_test_split(training_df[features], training_df[label], test_size=0.25, random_state=123, shuffle=True)
 
+  # Load the scikit-learn pre-processing pipeline
   preprocessing_pipeline = get_pipeline()
 
-  model = xgb.XGBClassifier(n_estimators = 25, use_label_encoder=False)
+  # Create a model instance
+  #model = xgb.XGBClassifier(n_estimators = 25, use_label_encoder=False)
+  model = xgb.XGBClassifier(n_estimators = 25)
 
+  # Add the model instance as a step in the pre-processing pipeline
   classification_pipeline = Pipeline([("preprocess", preprocessing_pipeline), ("classifier", model)])
 
+  # Perform pre-processing and train the model
   classification_pipeline.fit(X_train, y_train)
   
-  train_metrics = mlflow.sklearn.eval_and_log_metrics(classification_pipeline, X_train, y_train, prefix="train_")
-  eval_metrics = mlflow.sklearn.eval_and_log_metrics(classification_pipeline, X_test, y_test, prefix="eval_")
+  # Evaluate the model on the validation dataset
+  logged_model = f'runs:/{run_id}/model'
+  eval_features_and_labels = pd.concat([X_val, y_val], axis=1)
   
-  mlflow.autolog(log_input_examples=True,
-                 log_model_signatures=True,
-                 log_models=True)
+  mlflow.evaluate(logged_model, 
+                  data=eval_features_and_labels, 
+                  targets="Survived", 
+                  model_type="classifier")
   
-  # Train final model on all data
-  classification_pipeline.fit(training_df[features], training_df[label])
-
-# COMMAND ----------
-
-# MAGIC %md Create registry entry if one does not exist
-
-# COMMAND ----------
-
-create_registry_entry(f"{current_user}_model")
+  print(f"Training model with run id: {run_id}")

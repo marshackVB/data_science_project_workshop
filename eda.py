@@ -11,7 +11,7 @@ from helpers import get_current_user
 current_user = get_current_user()
 
 training_data_table = f"default.{current_user}_train"
-print(training_data_table)
+print(f"Training table name: {training_data_table}")
 
 # COMMAND ----------
 
@@ -38,6 +38,7 @@ print(training_data_table)
 # COMMAND ----------
 
 # MAGIC %md #### Pyspark
+# MAGIC See Pyspark DataFrame [documentation](https://spark.apache.org/docs/latest/api/python/reference/pyspark.pandas/frame.html)
 
 # COMMAND ----------
 
@@ -46,7 +47,7 @@ display(df)
 
 # COMMAND ----------
 
-gender_counts = df.groupBy('Sex').count()
+gender_counts = df.groupBy('NamePrefix').count()
 display(gender_counts)
 
 # COMMAND ----------
@@ -62,9 +63,3 @@ gender_counts = (spark.table(training_data_table)
                       .groupBy('under_20', 'Survived').count())
 
 display(gender_counts)
-
-# COMMAND ----------
-
-# MAGIC %md #### Koalas  
-# MAGIC 
-# MAGIC The Pandas API on Spark: https://github.com/databricks/koalas

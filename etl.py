@@ -3,47 +3,28 @@
 
 # COMMAND ----------
 
+# MAGIC %md See Ipython autoreload [documentation](https://ipython.org/ipython-doc/3/config/extensions/autoreload.html). This allow us to edit Python modules and have the changes automatically available in subsequent notebook cell runs.
+
+# COMMAND ----------
+
+# MAGIC %load_ext autoreload
+# MAGIC %autoreload 2
+
+# COMMAND ----------
+
+import pandas as pd
 import pyspark.sql.functions as func
 from pyspark.sql.functions import col
 from pyspark.sql.types import StringType, IntegerType, DoubleType, StructType, StructField
-from helpers import get_current_user
+from helpers import get_current_user, get_spark_dataframe
 
 # COMMAND ----------
 
-# MAGIC %md Specify Spark schema
+# MAGIC %md Load the raw data from .csv format into a Spark Dataframe
 
 # COMMAND ----------
 
-columns_and_types = [('PassengerId', StringType()),
-                     ('Survived', IntegerType()), 
-                     ('Pclass', StringType()),
-                     ('Name', StringType()), 
-                     ('Sex', StringType()), 
-                     ('Age', DoubleType()), 
-                     ('SibSp', StringType()),
-                     ('Parch', StringType()), 
-                     ('Ticket', StringType()), 
-                     ('Fare', DoubleType()),
-                     ('Cabin', StringType()),
-                     ('Embarked', StringType())]
-
-schema = StructType()
-for column_name, column_type in columns_and_types:
-    schema.add(StructField(column_name, column_type, True))
-
-# COMMAND ----------
-
-for column in schema:
-  print(column)
-
-# COMMAND ----------
-
-# MAGIC %md Ingest raw data
-
-# COMMAND ----------
-
-raw_data = spark.read.csv('/FileStore/tables/titanic_train-1.csv', schema=schema, header=True)
-
+raw_data = get_spark_dataframe()
 display(raw_data)
 
 # COMMAND ----------
@@ -89,12 +70,8 @@ display(transformed_data)
 # COMMAND ----------
 
 current_user = get_current_user()
-print(current_user)
+print(f'Current user: {current_user}')
 
-# COMMAND ----------
-
-transformed_data.write.mode('overwrite').format('delta').saveAsTable(f"default.{current_user}_train")
-
-# COMMAND ----------
+transformed_data.write.mode('overwrite').format('delta').saveAsTable(f'default.{current_user}_train')
 
 display(spark.table(f"default.{current_user}_train"))
