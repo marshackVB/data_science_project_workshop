@@ -19,6 +19,10 @@ from helpers import get_current_user, get_or_create_experiment
 
 # COMMAND ----------
 
+mlflow.autolog(disable=True)
+
+# COMMAND ----------
+
 current_user = get_current_user()
 print(f'Current user: {current_user}')
 
@@ -82,3 +86,33 @@ model_output.head()
 # COMMAND ----------
 
 # MAGIC %md ### XGBoost example
+
+# COMMAND ----------
+
+# MAGIC %md Load sample data
+
+# COMMAND ----------
+
+iris = datasets.load_iris()
+x = iris.data
+y = iris.target
+x_train, x_test, y_train, _ = train_test_split(x, y, test_size=0.2, random_state=42)
+dtrain = xgb.DMatrix(x_train, label=y_train)
+
+num_obs = 4
+
+print("Training samples")
+print(x_train[:num_obs])
+
+print("\n Training labels")
+print(y_train[:num_obs])
+
+# COMMAND ----------
+
+# MAGIC %md Train an XGBoost model and save it to the driver node
+
+# COMMAND ----------
+
+xgb_model = xgb.train(params={"max_depth": 10}, dtrain=dtrain, num_boost_round=10)
+xgb_model_path = "xgb_model.pth"
+xgb_model.save_model(xgb_model_path)
