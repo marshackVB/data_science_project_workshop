@@ -114,12 +114,12 @@ print(y_train[:num_obs])
 # COMMAND ----------
 
 xgb_model = xgb.train(params={"max_depth": 10}, dtrain=dtrain, num_boost_round=10)
-xgb_model_path = "xgb_model.pth"
+xgb_model_path = "/xgb_model.pth"
 xgb_model.save_model(xgb_model_path)
 
 # COMMAND ----------
 
-# MAGIC   %sh ls
+# MAGIC   %sh ls /
 
 # COMMAND ----------
 
