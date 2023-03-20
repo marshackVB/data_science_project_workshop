@@ -116,3 +116,73 @@ print(y_train[:num_obs])
 xgb_model = xgb.train(params={"max_depth": 10}, dtrain=dtrain, num_boost_round=10)
 xgb_model_path = "xgb_model.pth"
 xgb_model.save_model(xgb_model_path)
+
+# COMMAND ----------
+
+# MAGIC   %sh ls
+
+# COMMAND ----------
+
+# MAGIC %md Create an artifact mapping of artifact name to driver node location
+
+# COMMAND ----------
+
+artifacts = {"xgb_model": xgb_model_path}
+
+# COMMAND ----------
+
+# MAGIC %md Create the custom MLflow model
+
+# COMMAND ----------
+
+class XGBWrapper(mlflow.pyfunc.PythonModel):
+  """
+  Load artifacts from Mlflow, instantiate a model, and
+  perfor inference against a Numpy Array or Pandas DataFrame.
+  """
+  def load_context(self, context):
+    """
+    Load artifacts and instantiate the model.
+    """
+    import xgboost as xgb
+
+    self.xgb_model = xgb.Booster()
+    self.xgb_model.load_model(context.artifacts["xgb_model"])
+
+  def predict(self, context, model_input:pd.DataFrame) -> np.ndarray:
+    """
+    Perform inference
+    """
+    input_matrix = xgb.DMatrix(model_input.values)
+    return self.xgb_model.predict(input_matrix)
+
+# COMMAND ----------
+
+# MAGIC %md Log the model to MLflow
+
+# COMMAND ----------
+
+with mlflow.start_run(run_name='custom_xgboost') as run:
+  
+  run_id = run.info.run_id
+  
+  pyfunc_model = XGBWrapper()
+  
+  mlflow.pyfunc.log_model(artifact_path="model", 
+                          python_model=pyfunc_model,
+                          artifacts=artifacts)
+  
+  print(f"Simple model run_id: {run_id}")
+
+# COMMAND ----------
+
+# MAGIC %md Load the model and perform inference
+
+# COMMAND ----------
+
+logged_model = f"runs:/{run_id}/model"
+loaded_model = mlflow.pyfunc.load_model(logged_model)
+
+test_predictions = loaded_model.predict(pd.DataFrame(x_test))
+
+print(test_predictions)
