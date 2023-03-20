@@ -18,9 +18,10 @@ def get_current_user():
   """Get the current notebook user"""
   return dbutils.notebook.entry_point.getDbutils().notebook().getContext().userName().get().split('@')[0].replace('.', '_')
 
-def get_spark_dataframe():
+def get_spark_dataframe(csv_file_path=None):
   """Load sample .csv file from Repo into a Spark DataFrame"""
-  csv_file_path = 'titanic_train.csv'
+  if not csv_file_path:
+    csv_file_path = 'titanic_train.csv'
   columns_and_types = [('PassengerId', str, StringType()),
                      ('Survived', int, IntegerType()), 
                      ('Pclass', str, StringType()),
