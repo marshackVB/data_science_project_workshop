@@ -63,11 +63,9 @@ print(best_model_artifact_uri)
 
 model_registry_name = f"{current_user}_model"
 
-registered_model = client.create_model_version(
-                   name = model_registry_name,
-                   source = f"{best_model_artifact_uri}/model",
-                   run_id = best_model_run_id
-                    )
+registered_model = client.create_model_version(name = model_registry_name,
+                                               source = f"{best_model_artifact_uri}/model",
+                                               run_id = best_model_run_id)
 
 # COMMAND ----------
 

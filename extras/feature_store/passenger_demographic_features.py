@@ -95,7 +95,7 @@ fs.write_table(
 
 # COMMAND ----------
 
-# MAGIC %md To drop the feature table; this table must also be delted in the feature store UI
+# MAGIC %md To drop the feature table, delete the underlying Delta table; the table must also be deleted in the feature store UI
 
 # COMMAND ----------
 

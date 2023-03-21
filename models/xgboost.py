@@ -67,7 +67,6 @@ with mlflow.start_run(run_name='xgboost') as run:
   preprocessing_pipeline = get_pipeline()
 
   # Create a model instance
-  #model = xgb.XGBClassifier(n_estimators = 25, use_label_encoder=False)
   model = xgb.XGBClassifier(n_estimators = 25)
 
   # Add the model instance as a step in the pre-processing pipeline

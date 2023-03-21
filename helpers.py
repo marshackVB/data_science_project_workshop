@@ -18,6 +18,7 @@ def get_current_user():
   """Get the current notebook user"""
   return dbutils.notebook.entry_point.getDbutils().notebook().getContext().userName().get().split('@')[0].replace('.', '_')
 
+
 def get_spark_dataframe(csv_file_path=None):
   """Load sample .csv file from Repo into a Spark DataFrame"""
   if not csv_file_path:
@@ -46,7 +47,6 @@ def get_spark_dataframe(csv_file_path=None):
   df_spark = spark.createDataFrame(df_pandas, schema=spark_schema)
 
   return df_spark
-
 
 
 def get_or_create_experiment(experiment_location):

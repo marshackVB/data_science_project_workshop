@@ -58,8 +58,18 @@ display(gender_counts)
 
 expressions = ["Survived", "case when Age < 20 then '< 20' else '> 20' end as under_20"]
 
-gender_counts = (spark.table(training_data_table)
+group_counts = (spark.table(training_data_table)
                       .selectExpr(expressions)
                       .groupBy('under_20', 'Survived').count())
 
-display(gender_counts)
+display(group_counts)
+
+# COMMAND ----------
+
+group_counts.createOrReplaceTempView('group_counts_table')
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC 
+# MAGIC SELECT * FROM group_counts_table;

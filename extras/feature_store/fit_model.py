@@ -170,7 +170,7 @@ client = MlflowClient()
 # COMMAND ----------
 
 # Create a Model Registry entry for the model if one does not exist
-model_registry_name = f'feature_store_models_{current_user}'
+model_registry_name = f'{current_user}_model'
 try:
   client.get_registered_model(model_registry_name)
   print(" Registered model already exists")

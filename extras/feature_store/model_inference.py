@@ -46,7 +46,7 @@ def get_run_id(model_name, stage='Production'):
 
 
 # Replace the first parameter with your model's name
-run_id = get_run_id(f'feature_store_models_{current_user}', stage='Production')
+run_id = get_run_id(f'{current_user}_model', stage='Production')
 run_id
 
 # COMMAND ----------
